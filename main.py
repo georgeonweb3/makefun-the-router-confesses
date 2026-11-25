@@ -56,22 +56,31 @@ def validate_entry(text: str) -> str:
     return text
 
 
-def main() -> None:
-    entry = validate_entry(ENTRY)
-    directory = os.path.dirname(OUTPUT_PATH)
+def write_entry(path: str, text: str) -> None:
+    """Write the validated entry to path, creating its directory."""
+    directory = os.path.dirname(path)
     if directory:
         os.makedirs(directory, exist_ok=True)
-    with open(OUTPUT_PATH, "wb") as handle:
-        handle.write(entry.encode("utf-8"))
-    # Read-back verification: the graded artifact is the file on
-    # disk, not the string in memory — confirm the bytes landed.
-    # No randomness, no clock, no I/O beyond the one write, so a
-    # second run reproduces the same 148 bytes exactly.
-    with open(OUTPUT_PATH, "rb") as handle:
+    with open(path, "wb") as handle:
+        handle.write(text.encode("utf-8"))
+
+
+def read_back(path: str, text: str) -> None:
+    """Read-back verification: the graded artifact is the file on
+    disk, not the string in memory — confirm the bytes landed.
+    No randomness, no clock, no I/O beyond the one write, so a
+    second run reproduces the same 148 bytes exactly."""
+    with open(path, "rb") as handle:
         written = handle.read()
-    assert written == entry.encode("utf-8"), (
+    assert written == text.encode("utf-8"), (
         f"entry.txt on disk differs from ENTRY: {written!r}"
     )
+
+
+def main() -> None:
+    entry = validate_entry(ENTRY)
+    write_entry(OUTPUT_PATH, entry)
+    read_back(OUTPUT_PATH, entry)
 
 
 if __name__ == "__main__":
